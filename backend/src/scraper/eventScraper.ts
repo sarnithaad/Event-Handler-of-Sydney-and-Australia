@@ -9,7 +9,11 @@ export interface Event {
 }
 
 export async function scrapeSydneyEvents(): Promise<Event[]> {
-  const browser = await puppeteer.launch({ headless: true });
+  // Add cloud-friendly launch options
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
   const page = await browser.newPage();
   await page.goto('https://www.eventbrite.com.au/d/australia--sydney/events/', { waitUntil: 'networkidle2' });
 

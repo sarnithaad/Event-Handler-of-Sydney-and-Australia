@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import puppeteer, { Browser, HTTPResponse } from 'puppeteer';
 
 export interface Event {
   id: string;
@@ -9,7 +9,7 @@ export interface Event {
 }
 
 export async function scrapeSydneyEvents(): Promise<Event[]> {
-  let browser: puppeteer.Browser | null = null;
+  let browser: Browser | null = null;
 
   try {
     browser = await puppeteer.launch({
@@ -26,7 +26,7 @@ export async function scrapeSydneyEvents(): Promise<Event[]> {
     const page = await browser.newPage();
 
     // Try navigation with a sensible timeout and error handling
-    let response: puppeteer.HTTPResponse | null = null;
+    let response: HTTPResponse | null = null;
     try {
       response = await page.goto(
         'https://www.eventbrite.com.au/d/australia--sydney/events/',
@@ -34,7 +34,7 @@ export async function scrapeSydneyEvents(): Promise<Event[]> {
       );
     } catch (error: any) {
       // Handle navigation and timeout errors
-      if (error instanceof puppeteer.errors.TimeoutError) {
+      if (error && error.name === 'TimeoutError') {
         console.error('Navigation timed out, continuing with partially loaded page...');
       } else if (error.message && error.message.startsWith('net::ERR')) {
         throw new Error('Network error during navigation: ' + error.message);

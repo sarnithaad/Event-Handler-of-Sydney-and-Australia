@@ -4,9 +4,8 @@ import { scrapeSydneyEvents } from './scraper/eventScraper';
 
 const app = express();
 
-app.use(cors());
 const corsOptions = {
-  origin: 'https://event-handler-of-sydney-sarnitha-a-ds-projects.vercel.app',
+  origin: 'https://event-handler-of-sydney-sarnitha-a-ds-projects.vercel.app/',
   optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));

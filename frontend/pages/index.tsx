@@ -12,12 +12,12 @@ export default function Home() {
       try {
         const res = await fetch(`${apiUrl}/api/events`);
         const data = await res.json();
-        // Defensive: Only set events if data is an array
         if (Array.isArray(data)) {
           setEvents(data);
+          setError(null);
         } else {
           setEvents([]);
-          setError(data?.error || 'Unexpected response from server.');
+          setError(data?.message || data?.error || 'Unexpected response from server.');
         }
       } catch (err: any) {
         setEvents([]);

@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
 
 export interface Event {
   id: string;
@@ -8,11 +8,11 @@ export interface Event {
   url: string;
 }
 
-export async function scrapeSydneyEvents(): Promise<Event[]> {
-  // Add cloud-friendly launch options
+export async function scrapeSydneyEvents() {
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    executablePath: '/usr/bin/chromium', // Path to system Chromium on Ubuntu
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   const page = await browser.newPage();
   await page.goto('https://www.eventbrite.com.au/d/australia--sydney/events/', { waitUntil: 'networkidle2' });

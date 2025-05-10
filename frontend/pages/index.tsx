@@ -7,10 +7,15 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function load() {
-      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-      try {
-        const res = await fetch(`${apiUrl}/api/events`);
+  async function load() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    try {
+      const res = await fetch(`${apiUrl}/api/events`);
+      const contentType = res.headers.get('content-type');
+      if (!res.ok) {
+        setEvents([]);
+        setError(`Server error: ${res.status}`);
+      } else if (contentType && contentType.includes('application/json')) {
         const data = await res.json();
         if (Array.isArray(data)) {
           setEvents(data);
@@ -19,14 +24,23 @@ export default function Home() {
           setEvents([]);
           setError(data?.message || data?.error || 'Unexpected response from server.');
         }
-      } catch (err: any) {
+      } else {
+        // Not JSON, probably an error HTML page
+        const text = await res.text();
         setEvents([]);
-        setError(err.message || 'Failed to fetch events.');
+        setError('Server returned non-JSON response. Please try again later.');
+        // Optionally log text for debugging
+        // console.error('Non-JSON response:', text);
       }
-      setLoading(false);
+    } catch (err: any) {
+      setEvents([]);
+      setError(err.message || 'Failed to fetch events.');
     }
-    load();
-  }, []);
+    setLoading(false);
+  }
+  load();
+}, []);
+
 
   return (
     <main>

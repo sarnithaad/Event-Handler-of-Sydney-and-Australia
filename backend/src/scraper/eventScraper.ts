@@ -1,4 +1,5 @@
 import puppeteer, { Browser, HTTPResponse } from 'puppeteer';
+import fs from 'fs';
 
 export interface Event {
   id: string;
@@ -33,7 +34,6 @@ export async function scrapeSydneyEvents(): Promise<Event[]> {
         { waitUntil: 'networkidle2', timeout: 30000 }
       );
     } catch (error: any) {
-      // Handle navigation and timeout errors
       if (error && error.name === 'TimeoutError') {
         console.error('Navigation timed out, continuing with partially loaded page...');
       } else if (error.message && error.message.startsWith('net::ERR')) {
@@ -43,18 +43,25 @@ export async function scrapeSydneyEvents(): Promise<Event[]> {
       }
     }
 
-    // Check for HTTP errors
     if (response && response.status() >= 400) {
       throw new Error(`HTTP error: ${response.status()}`);
     }
 
-    // Check for default browser error pages
     if (page.url().startsWith('chrome-error://')) {
       throw new Error('Page load failed: default browser error page returned.');
     }
 
-    // Wait for the event cards to appear
-    await page.waitForSelector('[data-event-id]', { timeout: 15000 });
+    // Wait for the event cards to appear, with extended timeout and debugging
+    try {
+      await page.waitForSelector('[data-event-id]', { timeout: 30000, visible: true });
+    } catch (waitError) {
+      // Take a screenshot and dump HTML for debugging
+      await page.screenshot({ path: '/tmp/eventbrite_wait_error.png' });
+      const html = await page.content();
+      fs.writeFileSync('/tmp/eventbrite_wait_error.html', html);
+      console.error('Selector [data-event-id] not found. Screenshot and HTML dumped to /tmp/.');
+      throw new Error('Could not find any events on Eventbrite. The page structure may have changed, or you are being blocked.');
+    }
 
     // Scrape event data
     const events: Event[] = await page.evaluate(() => {

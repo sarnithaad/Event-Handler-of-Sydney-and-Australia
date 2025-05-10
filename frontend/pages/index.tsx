@@ -4,13 +4,25 @@ import EventCard, { Event } from '../components/EventCard';
 export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-      const res = await fetch(`${apiUrl}/api/events`);
-      const data = await res.json();
-      setEvents(data);
+      try {
+        const res = await fetch(`${apiUrl}/api/events`);
+        const data = await res.json();
+        // Defensive: Only set events if data is an array
+        if (Array.isArray(data)) {
+          setEvents(data);
+        } else {
+          setEvents([]);
+          setError(data?.error || 'Unexpected response from server.');
+        }
+      } catch (err: any) {
+        setEvents([]);
+        setError(err.message || 'Failed to fetch events.');
+      }
       setLoading(false);
     }
     load();
@@ -21,6 +33,8 @@ export default function Home() {
       <h1>Sydney Events</h1>
       {loading ? (
         <div>Loading events…</div>
+      ) : error ? (
+        <div style={{ color: 'red' }}>Error: {error}</div>
       ) : events.length === 0 ? (
         <div>No events found.</div>
       ) : (

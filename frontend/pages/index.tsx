@@ -7,7 +7,8 @@ export default function Home() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch('http://localhost:4000/api/events');
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+      const res = await fetch(`${apiUrl}/api/events`);
       const data = await res.json();
       setEvents(data);
       setLoading(false);
